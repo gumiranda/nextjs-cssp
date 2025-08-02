@@ -1,3 +1,4 @@
+// Configuração do middleware Clerk + tRPC
 import {
   clerkMiddleware,
   createRouteMatcher,
@@ -8,7 +9,10 @@ const isPublicRoute =
     '/sign-in(.*)',
     '/sign-up(.*)',
     '/',
-    '/pricing',
+    '/api/inngest(.*)',
+    '/api/trpc(.*)', // 🎯 Importante: tRPC precisa ser público para auth flow
+    '/api/webhooks/stripe(.*)',
+    '/pricing(.*)',
   ]);
 
 export default clerkMiddleware(
@@ -21,9 +25,9 @@ export default clerkMiddleware(
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
+    // ✅ Skip Next.js internals e arquivos estáticos
+    '/((?!_next|[^?]*.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // ✅ Sempre executar para API routes
     '/(api|trpc)(.*)',
   ],
 };
