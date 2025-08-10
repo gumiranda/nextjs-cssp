@@ -7,52 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 👤 Modelo User
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relacionamentos
-  posts     Post[]
-  comments  Comment[]
+model Subscription {
+  id                    String   @id @default(cuid())
+  clerkUserId           String   @unique
+  stripeCustomerId      String   @unique
+  stripeSubscriptionId  String   @unique
+  status                String   // active, canceled, past_due, etc.
+  priceId               String
+  cancelAtPeriodEnd     Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
-  @@map("users")
-}
-
-// 📝 Modelo Post
-model Post {
-  id          String   @id @default(cuid())
-  title       String
-  content     String?
-  published   Boolean  @default(false)
-  slug        String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relacionamentos
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments    Comment[]
-
-  @@map("posts")
-}
-
-// 💬 Modelo Comment
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relacionamentos
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  @@map("comments")
+  @@map("subscriptions")
 }
