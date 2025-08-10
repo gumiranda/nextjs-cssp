@@ -1,3 +1,4 @@
+// app/api/webhooks/stripe/route.ts
 import {
   type NextRequest,
   NextResponse,
@@ -7,6 +8,7 @@ import {
   createOrUpdateSubscriptionFromStripe,
   cancelSubscription,
 } from '@/lib/services/subscription';
+
 const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY!,
   {
@@ -16,6 +18,7 @@ const stripe = new Stripe(
 
 const webhookSecret =
   process.env.STRIPE_WEBHOOK_SECRET!;
+
 export async function POST(
   request: NextRequest,
 ) {
@@ -25,7 +28,9 @@ export async function POST(
       request.headers.get(
         'stripe-signature',
       )!;
+
     let event: Stripe.Event;
+
     try {
       event =
         stripe.webhooks.constructEvent(
@@ -43,14 +48,17 @@ export async function POST(
         { status: 400 },
       );
     }
+
+    // Handle the event
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data
           .object as Stripe.Checkout.Session;
         console.log(
-          'Payment succeeded:',
+          'Payment successful:',
           session.id,
         );
+
         try {
           const clerkUserId =
             session.client_reference_id;
@@ -85,6 +93,7 @@ export async function POST(
           );
         }
         break;
+
       case 'customer.subscription.created':
         const subscription = event.data
           .object as Stripe.Subscription;
@@ -246,6 +255,26 @@ export async function POST(
           );
         }
         break;
+
+      default:
+        console.log(
+          `Unhandled event type: ${event.type}`,
+        );
     }
-  } catch (error) {}
+
+    return NextResponse.json({
+      received: true,
+    });
+  } catch (error) {
+    console.error(
+      'Webhook error:',
+      error,
+    );
+    return NextResponse.json(
+      {
+        error: 'Webhook handler failed',
+      },
+      { status: 500 },
+    );
+  }
 }
