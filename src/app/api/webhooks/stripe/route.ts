@@ -48,7 +48,6 @@ export async function POST(
         { status: 400 },
       );
     }
-
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed':
@@ -136,14 +135,20 @@ export async function POST(
           'Subscription updated:',
           updatedSubscription.id,
         );
-
+        const subscriptionUpdated = {
+          ...updatedSubscription,
+          status:
+            updatedSubscription?.cancellation_details
+              ? 'canceled'
+              : updatedSubscription.status,
+        };
         try {
           await createOrUpdateSubscriptionFromStripe(
-            updatedSubscription,
+            subscriptionUpdated,
           );
           console.log(
             'Subscription updated in database:',
-            updatedSubscription.id,
+            subscriptionUpdated.id,
           );
         } catch (error) {
           console.error(
